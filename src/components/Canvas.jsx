@@ -5,34 +5,63 @@ const Canvas = ({ setPrediction, setLoading }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
+  const [loading, setInternalLoading] = useState(false);
+
+  const getTouchPos = (touchEvent) => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    const touch = touchEvent.touches[0];
+    return {
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top,
+    };
+  };
 
   const startDrawing = (e) => {
-    const { offsetX, offsetY } = e.nativeEvent;
+    e.preventDefault();
+    const isTouch = e.type.includes("touch");
+    const pos = isTouch
+      ? getTouchPos(e)
+      : {
+          x: e.nativeEvent.offsetX,
+          y: e.nativeEvent.offsetY,
+        };
     const ctx = canvasRef.current.getContext("2d");
     ctx.lineWidth = 20;
     ctx.lineCap = "round";
     ctx.strokeStyle = "black";
     ctx.beginPath();
-    ctx.moveTo(offsetX, offsetY);
-    setLastPos({ x: offsetX, y: offsetY });
+    ctx.moveTo(pos.x, pos.y);
+    setLastPos(pos);
     setIsDrawing(true);
   };
 
   const draw = (e) => {
+    e.preventDefault();
     if (!isDrawing) return;
-    const { offsetX, offsetY } = e.nativeEvent;
-    const ctx = canvasRef.current.getContext("2d");
-    ctx.lineWidth = 20;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "black";
-    ctx.beginPath();
-    ctx.moveTo(lastPos.x, lastPos.y);
-    ctx.lineTo(offsetX, offsetY);
-    ctx.stroke();
-    setLastPos({ x: offsetX, y: offsetY });
+
+    const isTouch = e.type.includes("touch");
+    const pos = isTouch
+      ? getTouchPos(e)
+      : {
+          x: e.nativeEvent.offsetX,
+          y: e.nativeEvent.offsetY,
+        };
+
+    requestAnimationFrame(() => {
+      const ctx = canvasRef.current.getContext("2d");
+      ctx.lineWidth = 20;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "black";
+      ctx.beginPath();
+      ctx.moveTo(lastPos.x, lastPos.y);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      setLastPos(pos);
+    });
   };
 
-  const stopDrawing = () => {
+  const stopDrawing = (e) => {
+    if (e) e.preventDefault();
     setIsDrawing(false);
   };
 
@@ -67,6 +96,7 @@ const Canvas = ({ setPrediction, setLoading }) => {
       const formData = new FormData();
       formData.append("file", blob, "canvas.png");
 
+      setInternalLoading(true);
       setLoading(true);
       setPrediction(null);
 
@@ -80,6 +110,7 @@ const Canvas = ({ setPrediction, setLoading }) => {
         console.error("Prediction failed:", err);
         setPrediction("Error");
       } finally {
+        setInternalLoading(false);
         setLoading(false);
       }
     }, "image/png");
@@ -99,7 +130,12 @@ const Canvas = ({ setPrediction, setLoading }) => {
         onMouseMove={draw}
         onMouseUp={stopDrawing}
         onMouseLeave={stopDrawing}
+        onTouchStart={startDrawing}
+        onTouchMove={draw}
+        onTouchEnd={stopDrawing}
+        onTouchCancel={stopDrawing}
         className="canvas-board"
+        style={{ touchAction: "none" }}
       />
       <div className="d-flex gap-2">
         <a>
@@ -108,8 +144,12 @@ const Canvas = ({ setPrediction, setLoading }) => {
           </button>
         </a>
         <a>
-          <button className="cta-btn cta-btn--resume" onClick={predictDrawing}>
-            Predict
+          <button
+            className="cta-btn cta-btn--resume"
+            onClick={predictDrawing}
+            disabled={loading}
+          >
+            {loading ? "Predicting..." : "Predict"}
           </button>
         </a>
       </div>
