@@ -1,0 +1,90 @@
+@use "../abstracts/variables";
+@use "../abstracts/mixins";
+
+// Base Button
+.cta-btn {
+  display: inline-block;
+  position: relative;
+  padding: 0.8rem variables.$default-font-size;
+  font-weight: bold;
+  line-height: 1;
+  z-index: 1;
+  border: 2px solid transparent;
+  background: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  transition: all 0.4s ease-in-out;
+
+  &::after {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 0%;
+    height: 100%;
+    left: 0;
+    bottom: 0;
+    z-index: -1;
+    transition: width 0.3s ease-in-out;
+  }
+
+  &:hover {
+    color: variables.$white-color;
+    -webkit-text-fill-color: variables.$white-color;
+    text-decoration: none;
+
+    &::after {
+      width: 100%;
+    }
+  }
+}
+
+
+.cta-btn--hero {
+  @include mixins.button-variant(variables.$primary-color, variables.$secondary-color);
+}
+
+.cta-btn--purple {
+  @include mixins.button-variant(#e0d611, #8f8300);
+}
+
+.cta-btn--red {
+  @include mixins.button-variant(#ab0101, #590000);
+}
+
+
+
+
+.cta-btn--resume {
+  border: 2px solid variables.$white-color;
+  color: variables.$white-color;
+  -webkit-text-fill-color: variables.$white-color;
+
+  &::after {
+    background: variables.$white-color;
+  }
+
+  &:hover {
+    color: variables.$secondary-color;
+    -webkit-text-fill-color: variables.$secondary-color;
+    text-decoration: none;
+  }
+}
+
+
+/* Arrow Button */
+.up i {
+  color: #272727;
+}
+
+/* Project Links */
+.project-links {
+  margin-top: 1.5rem;
+
+  a {
+    margin-right: 1.5rem;
+    font-weight: bold;
+    font-size: 1.6rem;
+  }
+}
