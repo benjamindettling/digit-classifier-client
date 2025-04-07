@@ -74,23 +74,82 @@ const Canvas = ({ setPrediction, setLoading }) => {
     setPrediction(null);
   };
 
-  const predictDrawing = async () => {
-    const canvas = canvasRef.current;
-
+  const centerAndResizeImage = (sourceCanvas) => {
     const tempCanvas = document.createElement("canvas");
     tempCanvas.width = 28;
     tempCanvas.height = 28;
     const tempCtx = tempCanvas.getContext("2d");
-    tempCtx.drawImage(canvas, 0, 0, 28, 28);
 
+    // Get image data from original canvas
+    const ctx = sourceCanvas.getContext("2d");
+    const original = ctx.getImageData(
+      0,
+      0,
+      sourceCanvas.width,
+      sourceCanvas.height
+    );
+    const data = original.data;
+
+    // Find bounding box
+    let minX = 280,
+      minY = 280,
+      maxX = 0,
+      maxY = 0;
+    for (let y = 0; y < 280; y++) {
+      for (let x = 0; x < 280; x++) {
+        const i = (y * 280 + x) * 4;
+        if (data[i] < 255) {
+          if (x < minX) minX = x;
+          if (y < minY) minY = y;
+          if (x > maxX) maxX = x;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+
+    const width = maxX - minX;
+    const height = maxY - minY;
+    const boxSize = Math.max(width, height);
+
+    // Create temporary cropped and centered canvas
+    const croppedCanvas = document.createElement("canvas");
+    croppedCanvas.width = boxSize;
+    croppedCanvas.height = boxSize;
+    const croppedCtx = croppedCanvas.getContext("2d");
+    croppedCtx.fillStyle = "white";
+    croppedCtx.fillRect(0, 0, boxSize, boxSize);
+    croppedCtx.drawImage(
+      sourceCanvas,
+      minX,
+      minY,
+      width,
+      height,
+      0,
+      0,
+      boxSize,
+      boxSize
+    );
+
+    // Draw to 28x28 canvas centered
+    tempCtx.fillStyle = "white";
+    tempCtx.fillRect(0, 0, 28, 28);
+    tempCtx.drawImage(croppedCanvas, 4, 4, 20, 20);
+
+    // Invert image
     const imageData = tempCtx.getImageData(0, 0, 28, 28);
-    const data = imageData.data;
-    for (let i = 0; i < data.length; i += 4) {
-      data[i] = 255 - data[i];
-      data[i + 1] = 255 - data[i + 1];
-      data[i + 2] = 255 - data[i + 2];
+    for (let i = 0; i < imageData.data.length; i += 4) {
+      imageData.data[i] = 255 - imageData.data[i];
+      imageData.data[i + 1] = 255 - imageData.data[i + 1];
+      imageData.data[i + 2] = 255 - imageData.data[i + 2];
     }
     tempCtx.putImageData(imageData, 0, 0);
+
+    return tempCanvas;
+  };
+
+  const predictDrawing = async () => {
+    const canvas = canvasRef.current;
+    const tempCanvas = centerAndResizeImage(canvas);
 
     tempCanvas.toBlob(async (blob) => {
       const formData = new FormData();
