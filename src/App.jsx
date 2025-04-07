@@ -1,7 +1,7 @@
-import Digit from "./components/Digit";
+import DigitSection from "./components/Digit";
 
 function App() {
-  return <Digit />;
+  return <DigitSection />;
 }
 
 export default App;
