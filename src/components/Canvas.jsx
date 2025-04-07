@@ -26,7 +26,7 @@ const Canvas = ({ setPrediction, setLoading }) => {
           y: e.nativeEvent.offsetY,
         };
     const ctx = canvasRef.current.getContext("2d");
-    ctx.lineWidth = 20;
+    ctx.lineWidth = 10;
     ctx.lineCap = "round";
     ctx.strokeStyle = "black";
     ctx.beginPath();
@@ -49,7 +49,7 @@ const Canvas = ({ setPrediction, setLoading }) => {
 
     requestAnimationFrame(() => {
       const ctx = canvasRef.current.getContext("2d");
-      ctx.lineWidth = 20;
+      ctx.lineWidth = 10;
       ctx.lineCap = "round";
       ctx.strokeStyle = "black";
       ctx.beginPath();
