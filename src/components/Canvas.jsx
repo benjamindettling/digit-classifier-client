@@ -6,6 +6,7 @@ const Canvas = ({ setPrediction, setLoading }) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
   const [loading, setInternalLoading] = useState(false);
+  const [lastTime, setLastTime] = useState(Date.now());
 
   const getTouchPos = (touchEvent) => {
     const rect = canvasRef.current.getBoundingClientRect();
@@ -29,6 +30,13 @@ const Canvas = ({ setPrediction, setLoading }) => {
     ctx.lineWidth = 10;
     ctx.lineCap = "round";
     ctx.strokeStyle = "black";
+
+    // 👇 Add dot immediately on tap/click
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, ctx.lineWidth / 2, 0, 2 * Math.PI);
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.fill();
+
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
     setLastPos(pos);
@@ -135,23 +143,37 @@ const Canvas = ({ setPrediction, setLoading }) => {
     tempCtx.fillRect(0, 0, 28, 28);
     tempCtx.drawImage(croppedCanvas, 4, 4, 20, 20);
 
-    // Invert image
-    const imageData = tempCtx.getImageData(0, 0, 28, 28);
-    for (let i = 0; i < imageData.data.length; i += 4) {
-      imageData.data[i] = 255 - imageData.data[i];
-      imageData.data[i + 1] = 255 - imageData.data[i + 1];
-      imageData.data[i + 2] = 255 - imageData.data[i + 2];
-    }
-    tempCtx.putImageData(imageData, 0, 0);
-
     return tempCanvas;
+  };
+
+  const isCanvasBlank = (canvas) => {
+    const context = canvas.getContext("2d");
+    const pixelBuffer = new Uint32Array(
+      context.getImageData(0, 0, canvas.width, canvas.height).data.buffer
+    );
+    return !pixelBuffer.some((color) => color !== 0xffffffff); // true if all white
   };
 
   const predictDrawing = async () => {
     const canvas = canvasRef.current;
+
+    // Check for blank canvas
+    if (isCanvasBlank(canvas)) {
+      console.warn("Canvas is blank – skipping prediction.");
+      setPrediction("Please draw something first");
+      return;
+    }
+
     const tempCanvas = centerAndResizeImage(canvas);
 
     tempCanvas.toBlob(async (blob) => {
+      if (!blob) {
+        console.error("Blob generation failed. Aborting prediction.");
+        setPrediction("Error generating image. Please try again.");
+        setInternalLoading(false);
+        setLoading(false);
+        return;
+      }
       const formData = new FormData();
       formData.append("file", blob, "canvas.png");
 
@@ -159,14 +181,26 @@ const Canvas = ({ setPrediction, setLoading }) => {
       setLoading(true);
       setPrediction(null);
 
-      try {
-        const res = await axios.post(
+      const predictOnce = async () => {
+        return await axios.post(
           "https://mnist-api-8p5a.onrender.com/predict",
           formData
         );
+      };
+
+      try {
+        let res;
+        try {
+          res = await predictOnce();
+        } catch (firstError) {
+          // Second try
+          console.warn("First attempt failed, retrying...");
+          res = await predictOnce();
+        }
+
         setPrediction(res.data.prediction);
       } catch (err) {
-        console.error("Prediction failed:", err);
+        console.error("Prediction failed after retry:", err);
         setPrediction("Error");
       } finally {
         setInternalLoading(false);

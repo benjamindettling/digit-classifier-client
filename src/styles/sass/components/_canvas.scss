@@ -6,3 +6,8 @@
     cursor: crosshair;
   }
   
+  canvas {
+    touch-action: none;
+    -ms-touch-action: none; /* For older IE/Edge support */
+  }
+  
