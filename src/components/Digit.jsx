@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import CanvasDraw from "./Canvas";
+import { useTranslation } from "react-i18next";
 
 const DigitSection = () => {
-  const [prediction, setPrediction] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [serverReady, setServerReady] = useState(false);
+  const [prediction, setPrediction] = useState(null); // Stores predicted digit from backend
+  const [loading, setLoading] = useState(false); // Indicates loading state during prediction
+  const [serverReady, setServerReady] = useState(false); // Tracks if backend is awake
+  const { t } = useTranslation();
 
-  // Wake up the server on load
+  // Wake up the server on load (in case Render fell asleep)
   useEffect(() => {
     const wakeUp = async () => {
       try {
@@ -26,26 +27,39 @@ const DigitSection = () => {
   }, []);
 
   return (
-    <section id="digit">
-      <div className="container">
-        <h2 className="section-title">AI Digit Classifier</h2>
-
+    <section id="digit" className="py-5 bg-light">
+      <div className="container text-center">
+        <h1 className="display-3 fw-bold mb-4"> {t("title")} </h1>
         {!serverReady && (
-          <div className="digit-wrapper__output">
-            <h2 className="text-color-light">Waking up server...</h2>
-            <div className="digit-result">This may take 30–60 seconds</div>
+          <div className="my-4">
+            <h4 className="text-muted"> {t("waking_up")} </h4>
+            <p className="text-secondary"> {t("wait_time")} </p>
           </div>
         )}
 
         {serverReady && (
-          <div className="digit-wrapper">
-            <CanvasDraw setPrediction={setPrediction} setLoading={setLoading} />
+          <div className="row justify-content-center align-items-center min-vh-50 py-5">
+            {/* Canvas column */}
+            <div className="col-md-6 d-flex justify-content-center">
+              <CanvasDraw
+                setPrediction={setPrediction}
+                setLoading={setLoading}
+              />
+            </div>
 
-            <div className="digit-wrapper__output">
-              <h2>AI's prediction is:</h2>
-              {prediction !== null && (
-                <div className="digit-result">{prediction}</div>
-              )}
+            {/* Prediction column */}
+            <div className="col-md-4 d-flex flex-column justify-content-center align-items-center text-center">
+              <h3 className="mb-3"> {t("prediction_label")} </h3>
+              <div
+                className="fw-bold text-white"
+                style={{
+                  minHeight: "4rem",
+                  fontSize: "6rem",
+                  textShadow: "2px 2px 8px rgba(0, 0, 0, 0.2)",
+                }}
+              >
+                {prediction !== null ? prediction : t("empty")}
+              </div>
             </div>
           </div>
         )}

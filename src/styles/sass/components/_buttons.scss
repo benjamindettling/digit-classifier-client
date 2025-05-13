@@ -40,9 +40,11 @@
   }
 }
 
-
 .cta-btn--hero {
-  @include mixins.button-variant(variables.$primary-color, variables.$secondary-color);
+  @include mixins.button-variant(
+    variables.$primary-color,
+    variables.$secondary-color
+  );
 }
 
 .cta-btn--purple {
@@ -52,9 +54,6 @@
 .cta-btn--red {
   @include mixins.button-variant(#ab0101, #590000);
 }
-
-
-
 
 .cta-btn--resume {
   border: 2px solid variables.$white-color;
@@ -71,7 +70,6 @@
     text-decoration: none;
   }
 }
-
 
 /* Arrow Button */
 .up i {

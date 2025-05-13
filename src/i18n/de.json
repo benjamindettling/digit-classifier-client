@@ -1,0 +1,10 @@
+{
+  "title": "KI-Ziffern-Klassifikation",
+  "waking_up": "Server wird aufgeweckt...",
+  "wait_time": "Dies kann 30–60 Sekunden dauern",
+  "prediction_label": "KIs Vorhersage ist:",
+  "clear": "Löschen",
+  "predict": "Vorhersagen",
+  "predicting": "Vorhersage läuft...",
+  "empty": "leer"
+}

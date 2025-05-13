@@ -1,0 +1,10 @@
+{
+  "title": "AI Digit Classifier",
+  "waking_up": "Waking up server...",
+  "wait_time": "This may take 30–60 seconds",
+  "prediction_label": "AI's prediction is:",
+  "clear": "Clear",
+  "predict": "Predict",
+  "predicting": "Predicting...",
+  "empty": "empty"
+}

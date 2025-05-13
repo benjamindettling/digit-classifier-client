@@ -1,7 +1,13 @@
 import DigitSection from "./components/Digit";
+import LanguageToggle from "./components/LanguageToggle";
 
 function App() {
-  return <DigitSection />;
+  return (
+    <>
+      <LanguageToggle />
+      <DigitSection />;
+    </>
+  );
 }
 
 export default App;
