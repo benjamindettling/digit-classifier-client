@@ -58,7 +58,7 @@ const DigitSection = () => {
                   textShadow: "2px 2px 8px rgba(0, 0, 0, 0.2)",
                 }}
               >
-                {prediction !== null ? prediction : t("empty")}
+                {prediction !== null ? prediction : "\u00A0"}
               </div>
             </div>
           </div>
